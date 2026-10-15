@@ -34,3 +34,21 @@ All indexes are created idempotently at application startup via FastAPI's lifesp
 - **Review of starter defects** is documented in `REVIEW.md`.
 - **Architectural decisions & query plans** are detailed in `DECISIONS.md`.
 - **Explain plans** for all analytics queries are exposed via `GET /admin/explain/{endpoint}`, using index scans (`IXSCAN`) and zero collection scans (`COLLSCAN`).
+
+## Running Tests
+
+Install the project dependencies, including the test tools:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Ensure MongoDB is running, then execute:
+
+```bash
+python -m pytest tests -v
+```
+
+The API tests use a separate `attendance_test_db` database and remove that test database before and after the test module. Do not configure `MONGO_DB` to point to a database containing data you need to preserve.
+
+The test suite covers attendance calculations, employee validation, attendance endpoints, duplicate requests, and concurrent punch-in, punch-out, and regularization behavior.
