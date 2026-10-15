@@ -1291,32 +1291,44 @@ def explain_endpoint(
             "explain": explain_res,
         }
 
+
     elif endpoint == "department_trend":
-        if not department or not from_date or not to_date:
+        if not department or not date_from or not date_to:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="department, from, and to are required",
             )
-        if not re.match(r"^\d{4}-\d{2}-\d{2}$", from_date) or not re.match(
-            r"^\d{4}-\d{2}-\d{2}$", to_date
+
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_from) or not re.match(
+            r"^\d{4}-\d{2}-\d{2}$", date_to
         ):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Invalid date format",
             )
-        d_from = date.fromisoformat(from_date)
-        d_to = date.fromisoformat(to_date)
+
+        try:
+            d_from = date.fromisoformat(date_from)
+            d_to = date.fromisoformat(date_to)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid date format",
+            )
+
         if d_to < d_from:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="'to' date must be >= 'from' date",
             )
+
         if (d_to - d_from).days + 1 > 92:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Date range exceeds 92 days",
             )
-        pipe = build_department_trend_pipeline(department, from_date, to_date)
+
+        pipe = build_department_trend_pipeline(department, date_from, date_to)
         explain_res = db.command(
             "explain",
             {"aggregate": "attendance_logs", "pipeline": pipe, "cursor": {}},
